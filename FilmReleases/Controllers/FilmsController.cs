@@ -28,15 +28,33 @@ namespace FilmReleases.Controllers
             if (fromDate == null)
                 return _repository.GetAllFilms().ToList();
             var to_date = toDate ?? DateTime.MaxValue;
-            return _repository.GetReleasedFilms(fromDate.Value, to_date).ToList();
+            try
+            {
+                return _repository.GetReleasedFilms(fromDate.Value, to_date).ToList();
+            }
+            catch 
+            {
+                _logger.LogError($"Error while fetching films");
+                return BadRequest();
+            }
         }
 
         [HttpGet("{id}")]
         public ActionResult<Film> Get(int id)
         {
-           var film= _repository.GetFilm(id);
+            Film film;
+            try
+            {
+                film = _repository.GetFilm(id);
+            }
+            catch
+            {
+                _logger.LogError($"Error while trying to get film id={id}");
+                return BadRequest();
+            }
             if (film == null)
             {
+                _logger.LogInformation($"Film not found id={id}");
                 return NotFound();
             }
             return Ok(film); 
